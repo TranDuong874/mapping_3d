@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pyorbslam3-local"
+version = "0.1.0"
+description = "Local pybind11 wrapper and runners for a modernized ORB-SLAM3 build."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "numpy>=1.24",
+]
+
+[tool.setuptools.packages.find]
+include = ["pyorbslam3*"]

@@ -1,0 +1,21 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+dist/
+build/
+outputs/
+*.so
+
+# Local extension build output
+pyorbslam3/_orbslam3*.so
+
+# Local vendored ORB build artifacts
+dependency/ORB_SLAM3/build/
+dependency/ORB_SLAM3/lib/
+dependency/ORB_SLAM3/Thirdparty/DBoW2/build/
+dependency/ORB_SLAM3/Thirdparty/DBoW2/lib/
+dependency/ORB_SLAM3/Thirdparty/g2o/build/
+dependency/ORB_SLAM3/Thirdparty/g2o/lib/
+dependency/ORB_SLAM3/Thirdparty/Sophus/build/
+dependency/ORB_SLAM3/Vocabulary/ORBvoc.txt
