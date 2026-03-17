@@ -1,6 +1,6 @@
 # mapping_3d
 
-Local ORB-SLAM3 Python bindings, a modernized vendored ORB-SLAM3 fork, and a simple stereo-inertial dataset runner.
+Local ORB-SLAM3 Python bindings, a modernized vendored ORB-SLAM3 fork, a simple stereo-inertial dataset runner, and a dense monocular-inertial mapping runner with async depth fusion.
 
 ## Repo Layout
 
@@ -8,6 +8,7 @@ Local ORB-SLAM3 Python bindings, a modernized vendored ORB-SLAM3 fork, and a sim
 - `pyorbslam3/`: Python package entrypoint
 - `orbslam3_bindings.cpp`: pybind11 bridge
 - `run_orbslam3_tumvi.py`: end-to-end TUM-VI style runner
+- `run_orbslam3_da3_realtime.py`: dense monocular-inertial runner with UniDepthV2 or DA3 depth backends
 - `examples/`: minimal binding examples
 - `docs/`: build and API documentation
 
@@ -44,14 +45,26 @@ Outputs:
 - `camera_path.xyz`
 - `sparse_points.xyz`
 
+Run the dense monocular-inertial runner:
+
+```bash
+cd mapping_3d
+python3 run_orbslam3_da3_realtime.py \
+  --dataset-root dataset/dataset-corridor1_512_16
+```
+
+Dense runner outputs include trajectory, sparse points, live occupancy exports, and a final fused occupancy map under `outputs/orbslam3_da3_realtime/`.
+
 ## Documentation
 
 - `docs/BUILD.md`: prerequisites, build flow, rebuild notes
 - `docs/API.md`: binding API summary and usage notes
+- `docs/RUN_ORBSLAM3_DENSE.md`: dense runner usage, backends, outputs, and CLI option reference
 - `examples/basic_tumvi_stereo_inertial.py`: minimal binding example over a TUM-VI style dataset
 
 ## Notes
 
 - The build defaults to `MAKE_JOBS=2` to avoid memory spikes.
 - The binding is ROS-free and intended for direct local Python use.
-- The runner currently targets stereo-inertial TUM-VI style datasets and exports trajectory plus sparse map points.
+- `run_orbslam3_tumvi.py` is the simple stereo-inertial runner.
+- `run_orbslam3_da3_realtime.py` is the dense monocular-inertial runner.

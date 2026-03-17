@@ -106,6 +106,7 @@ Available methods:
 - `slam.get_tracking_state_name()`
 - `slam.get_current_map_points()`
 - `slam.get_tracked_keypoints()`
+- `slam.get_tracked_observations()`
 - `slam.get_image_scale()`
 - `slam.reset()`
 - `slam.reset_active_map()`
@@ -113,6 +114,11 @@ Available methods:
 - `slam.is_shutdown()`
 
 `get_current_map_points()` returns an `Nx3 float32` array of sparse world points from the current map.
+
+`get_tracked_observations()` returns a dictionary with:
+
+- `keypoints_uv`: `Nx2 float32` current-frame keypoint coordinates for valid tracked map points
+- `world_points_xyz`: `Nx3 float32` corresponding sparse map points in world coordinates
 
 ## Minimal Example
 

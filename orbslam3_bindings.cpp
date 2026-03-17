@@ -14,6 +14,7 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
+#include "MapPoint.h"
 #include "System.h"
 
 namespace py = pybind11;
@@ -204,6 +205,38 @@ py::array_t<float> keypoints_to_numpy(const std::vector<cv::KeyPoint>& keypoints
     return result;
 }
 
+py::dict tracked_observations_to_python(
+    const std::vector<cv::KeyPoint>& keypoints,
+    const std::vector<ORB_SLAM3::MapPoint*>& map_points
+) {
+    std::vector<cv::KeyPoint> filtered_keypoints;
+    std::vector<Eigen::Vector3f> filtered_world_points;
+    const std::size_t num_entries = std::min(keypoints.size(), map_points.size());
+    filtered_keypoints.reserve(num_entries);
+    filtered_world_points.reserve(num_entries);
+
+    for (std::size_t index = 0; index < num_entries; ++index) {
+        ORB_SLAM3::MapPoint* map_point = map_points[index];
+        if (!map_point || map_point->isBad()) {
+            continue;
+        }
+
+        const Eigen::Vector3f world_point = map_point->GetWorldPos();
+        if (!std::isfinite(world_point.x()) || !std::isfinite(world_point.y()) ||
+            !std::isfinite(world_point.z())) {
+            continue;
+        }
+
+        filtered_keypoints.push_back(keypoints[index]);
+        filtered_world_points.push_back(world_point);
+    }
+
+    py::dict result;
+    result["keypoints_uv"] = keypoints_to_numpy(filtered_keypoints);
+    result["world_points_xyz"] = vector3_list_to_numpy(filtered_world_points);
+    return result;
+}
+
 class OrbSlam3System {
 public:
     OrbSlam3System(
@@ -321,6 +354,18 @@ public:
         return keypoints_to_numpy(keypoints);
     }
 
+    py::dict get_tracked_observations() {
+        std::vector<cv::KeyPoint> keypoints;
+        std::vector<ORB_SLAM3::MapPoint*> map_points;
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            ensure_running();
+            keypoints = system_.GetTrackedKeyPointsUn();
+            map_points = system_.GetTrackedMapPoints();
+        }
+        return tracked_observations_to_python(keypoints, map_points);
+    }
+
     void reset() {
         std::lock_guard<std::mutex> lock(mutex_);
         ensure_running();
@@ -417,6 +462,7 @@ PYBIND11_MODULE(_orbslam3, module) {
         .def("get_tracking_state_name", &OrbSlam3System::get_tracking_state_name)
         .def("get_current_map_points", &OrbSlam3System::get_current_map_points)
         .def("get_tracked_keypoints", &OrbSlam3System::get_tracked_keypoints)
+        .def("get_tracked_observations", &OrbSlam3System::get_tracked_observations)
         .def("reset", &OrbSlam3System::reset)
         .def("reset_active_map", &OrbSlam3System::reset_active_map)
         .def("shutdown", &OrbSlam3System::shutdown)
