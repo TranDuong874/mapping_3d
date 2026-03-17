@@ -108,9 +108,7 @@ cv::Mat depth_from_numpy(const py::array& depth) {
     return result;
 }
 
-std::vector<ORB_SLAM3::IMU::Point> convert_imu(
-    const std::vector<ImuMeasurement>& imu_measurements
-) {
+std::vector<ORB_SLAM3::IMU::Point> convert_imu(const std::vector<ImuMeasurement>& imu_measurements) {
     std::vector<ORB_SLAM3::IMU::Point> converted;
     converted.reserve(imu_measurements.size());
     for (const ImuMeasurement& sample : imu_measurements) {
@@ -164,10 +162,15 @@ py::tuple pose_quaternion_to_tuple(const Sophus::SE3f& pose) {
     return py::make_tuple(quaternion.w(), quaternion.x(), quaternion.y(), quaternion.z());
 }
 
-py::dict make_tracking_result(const Sophus::SE3f& pose, int tracking_state) {
+py::dict make_tracking_result(
+    const Sophus::SE3f& pose,
+    int tracking_state,
+    bool is_keyframe
+) {
     py::dict result;
     result["tracking_state"] = tracking_state;
     result["tracking_state_name"] = tracking_state_name(tracking_state);
+    result["is_keyframe"] = is_keyframe;
     result["pose_valid"] = is_finite_se3(pose);
     result["pose_matrix"] = pose_matrix_to_numpy(pose);
     if (is_finite_se3(pose)) {
@@ -228,14 +231,16 @@ public:
         std::vector<ORB_SLAM3::IMU::Point> imu_points = convert_imu(imu_measurements);
         Sophus::SE3f pose;
         int tracking_state = -1;
+        bool is_keyframe = false;
         {
             py::gil_scoped_release release;
             std::lock_guard<std::mutex> lock(mutex_);
             ensure_running();
             pose = system_.TrackMonocular(image_mat, timestamp_s, imu_points, filename);
             tracking_state = system_.GetTrackingState();
+            is_keyframe = system_.WasLastFrameKeyFrame();
         }
-        return make_tracking_result(pose, tracking_state);
+        return make_tracking_result(pose, tracking_state, is_keyframe);
     }
 
     py::dict track_stereo(
@@ -250,14 +255,16 @@ public:
         std::vector<ORB_SLAM3::IMU::Point> imu_points = convert_imu(imu_measurements);
         Sophus::SE3f pose;
         int tracking_state = -1;
+        bool is_keyframe = false;
         {
             py::gil_scoped_release release;
             std::lock_guard<std::mutex> lock(mutex_);
             ensure_running();
             pose = system_.TrackStereo(left_mat, right_mat, timestamp_s, imu_points, filename);
             tracking_state = system_.GetTrackingState();
+            is_keyframe = system_.WasLastFrameKeyFrame();
         }
-        return make_tracking_result(pose, tracking_state);
+        return make_tracking_result(pose, tracking_state, is_keyframe);
     }
 
     py::dict track_rgbd(
@@ -272,14 +279,16 @@ public:
         std::vector<ORB_SLAM3::IMU::Point> imu_points = convert_imu(imu_measurements);
         Sophus::SE3f pose;
         int tracking_state = -1;
+        bool is_keyframe = false;
         {
             py::gil_scoped_release release;
             std::lock_guard<std::mutex> lock(mutex_);
             ensure_running();
             pose = system_.TrackRGBD(image_mat, depth_mat, timestamp_s, imu_points, filename);
             tracking_state = system_.GetTrackingState();
+            is_keyframe = system_.WasLastFrameKeyFrame();
         }
-        return make_tracking_result(pose, tracking_state);
+        return make_tracking_result(pose, tracking_state, is_keyframe);
     }
 
     int get_tracking_state() {

@@ -2,3 +2,9 @@
 	path = dependency/ORB_SLAM3
 	url = https://github.com/TranDuong874/ORB_SLAM3.git
 	branch = master
+
+[submodule "dependency/Depth-Anything-3"]
+	path = dependency/Depth-Anything-3
+	url = https://github.com/ByteDance-Seed/Depth-Anything-3.git
+	branch = main
+

@@ -4,12 +4,18 @@ from __future__ import annotations
 import argparse
 import bisect
 import csv
+import os
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable
 
 import cv2
 import numpy as np
+
+# The pip cv2 wheel may set Qt plugin env vars inside the virtualenv that conflict
+# with ORB-SLAM3's native viewer thread.
+os.environ.pop("QT_QPA_PLATFORM_PLUGIN_PATH", None)
+os.environ.pop("QT_QPA_FONTDIR", None)
 
 import pyorbslam3
 
@@ -256,6 +262,7 @@ def main() -> int:
                     "timestamp_ns",
                     "tracking_state",
                     "pose_valid",
+                    "is_key_frame"
                 ]
             )
 
@@ -288,6 +295,7 @@ def main() -> int:
                         frame.timestamp_ns,
                         result["tracking_state_name"],
                         int(bool(result["pose_valid"])),
+                        result["is_keyframe"]
                     ]
                 )
 

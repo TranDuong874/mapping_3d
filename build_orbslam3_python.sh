@@ -18,7 +18,9 @@ PY
 OUTPUT_DIR="${SCRIPT_DIR}/pyorbslam3"
 OUTPUT_FILE="${OUTPUT_DIR}/_orbslam3${EXT_SUFFIX}"
 
-if [[ ! -f "${ORB_ROOT}/lib/libORB_SLAM3.so" ]]; then
+if [[ -f "${ORB_ROOT}/build/Makefile" ]]; then
+  make -C "${ORB_ROOT}/build" -j"${MAKE_JOBS}" ORB_SLAM3
+elif [[ ! -f "${ORB_ROOT}/lib/libORB_SLAM3.so" ]]; then
   (cd "${ORB_ROOT}" && MAKE_JOBS="${MAKE_JOBS}" bash build.sh)
 fi
 
