@@ -133,10 +133,14 @@ def main():
                         global_pcd.colors.extend(local_pcd.colors)
                         global_pcd = global_pcd.voxel_down_sample(VOXEL_SIZE)
                 
-            last_kf_data = {'img_path': path, 'uvs': obs['keypoints_uv'], 'pts_world': obs['world_points_xyz']}
             processed_kfs += 1
-            torch.cuda.empty_cache(); gc.collect()
+            last_kf_data = {'img_path': path, 'uvs': obs['keypoints_uv'], 'pts_world': obs['world_points_xyz']}
 
+            # Immediate cleanup of loop temp files
+            for f in ['t1.png', 't2.png']:
+                if os.path.exists(f): os.remove(f)
+
+            torch.cuda.empty_cache(); gc.collect()
             if processed_kfs % 10 == 0:
                 o3d.io.write_point_cloud(output_path, global_pcd)
                 print(f"Checkpoint saved: {len(global_pcd.points)} points")
